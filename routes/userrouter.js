@@ -116,4 +116,49 @@ router.post('/register',validateSignUp, async (req, res) => {
             res.status(200).json(userCreateError)
         }   
 });
+
+const validateLogin= async (req, res,next) => {
+    //console.log(req);
+    if( !req.body.emailId || !req.body.password){
+                
+        res.send(invalidRequestError);
+        return;
+        //rejecting request if invalid parameters
+    }
+    var email=req.body.emailId;
+    var emailRegularExpression=/^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
+    if(!emailRegularExpression.test(email)){
+        res.send(emailNotValid);
+        return;
+    }
+
+    next();
+
+}
+router.post('/login',validateLogin, async (req, res) => {
+    // Convert password from base64 to md5 
+    var originalPassword = new Buffer.from(new Buffer.from(req.body.password, 'base64').toString("ascii"),'base64').toString("ascii");
+    var passwordHash = crypto.createHash('md5').update(originalPassword).digest("hex");
+    var email=req.body.emailId;
+    
+    var oo={ 'emailId' : email,'password': passwordHash.toString("ascii")};
+  
+    try {
+        var userRes = await User.findOne(oo);
+        console.log(userRes);
+        if(userRes){
+            var token=await jwtFunctions.createJWTToken(userRes);
+            console.log(token);
+            userRes=userRes.toJSON();
+            userRes.token=token;
+            res.status(200).send(userRes)
+        }else{
+            res.status(200).json(loginError)
+        }
+       
+    } catch (e) {
+        res.status(200).json(loginError)
+    }
+})
+
 module.exports = router;
