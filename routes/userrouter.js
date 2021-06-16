@@ -161,4 +161,100 @@ router.post('/login',validateLogin, async (req, res) => {
     }
 })
 
+router.post('/getuserlist',jwtFunctions.verifyRequest,async(req, res)=>{
+    var searchString = {};
+    var empsearch={};
+    var sortString={};
+    var sortby=req.body.sortby;
+    // for search
+    if(req.body.employeeID){
+        empsearch.employeeID=req.body.employeeID;
+    }
+    if(req.body.firstName){
+        searchString["userInfo.firstName"]=req.body.firstName;
+    }
+    if(req.body.lastName){
+        searchString["userInfo.lastName"]=req.body.lastName;
+    }
+    // for pagination. Now i consider 2 records in one page. For next page skip = 2 and limit again 2
+    var skip=0,limit=2;
+    if(req.body.skip){
+        skip=req.body.skip;
+    }
+
+    if(req.body.limit){
+      limit=req.body.limit;
+    }
+    var aggString=[
+        { "$match": empsearch },
+        {
+            "$lookup": {
+                "from": "users",
+                "localField": "userId",
+                "foreignField": "_id",
+                "as": "userInfo"
+            }
+        },
+        {
+            $unwind: "$userInfo"
+        },
+        { "$match": searchString },
+        {$project:
+            {
+                "_id":"$userInfo._id",
+                "firstName": "$userInfo.firstName",
+                "lastName":"$userInfo.lastName",
+                "emailId":"$userInfo.emailId",
+                "employeeID":"$employeeID",
+                "organizationName":"$organizationName"
+            }},
+        {$skip:skip},
+        {$limit:limit}
+        
+     ]
+    // for sorting. for now we send sort by organizationName you can change and get by other parameter also
+    if(sortby){
+        var arr={"employeeID":"employeeID","firstName":"userInfo.firstName","lastName":"userInfo.lastName","emailId":"userInfo.emailId","organizationName":"organizationName"};
+        for (var paramss in arr) {
+            console.log(paramss);
+            console.log(sortby);
+            if (sortby==paramss) {
+                sortString[arr[paramss]]=1;
+            }
+        }
+
+        var aggString=[
+            { "$match": empsearch },
+            {
+                "$lookup": {
+                    "from": "users",
+                    "localField": "userId",
+                    "foreignField": "_id",
+                    "as": "userInfo"
+                }
+            },
+            {
+                $unwind: "$userInfo"
+            },
+            { "$match": searchString },
+            {"$sort": sortString},
+            {$project:
+                {
+                    "_id":"$userInfo._id",
+                    "firstName": "$userInfo.firstName",
+                    "lastName":"$userInfo.lastName",
+                    "emailId":"$userInfo.emailId",
+                    "employeeID":"$employeeID",
+                    "organizationName":"$organizationName"
+                }},
+            {$skip:skip},
+            {$limit:limit}
+         ]
+    }
+    
+    var userList = await Employee.aggregate(aggString);
+
+    res.send(userList);
+})
+
 module.exports = router;

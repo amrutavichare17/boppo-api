@@ -37,9 +37,9 @@ app.use(function (req, res, next) {
   var ROOT_PATH = "/api";
   const userConfig = require('./routes/userrouter');
   app.use( ROOT_PATH + '/user', userConfig);
-   mongoose.connect("mongodb://localhost:27017/boppo", { useNewUrlParser: true })
+//   mongoose.connect("mongodb://localhost:27017/boppo", { useNewUrlParser: true })
  // Connect with database
-  //mongoose.connect("mongodb+srv://amruta:antarctica@123@antarctica.sr90e.mongodb.net/antarctica?retryWrites=true&w=majority", { useNewUrlParser: true })
+  mongoose.connect("mongodb+srv://amruta:amruta@123@boppo.ai2od.mongodb.net/myFirstDatabase?retryWrites=true&w=majority", { useNewUrlParser: true })
   const db = mongoose.connection
   db.on('error', (error) => console.error(error))
   db.once('open', startListning )
