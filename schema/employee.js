@@ -19,8 +19,7 @@ var empSchema=mongoose.Schema({
     }
 });
 empSchema.index({
-    employeeID: 1,
-    organizationName: 1,
+    employeeID: 1
   }, {
     unique: true, sparse:true
   });

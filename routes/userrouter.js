@@ -90,7 +90,7 @@ router.post('/register',validateSignUp, async (req, res) => {
             res.send(userAlreadyExsist);
             return;
         }
-        var empRes = await Employee.findOne({ 'employeeID' : req.body.employeeID, 'organizationName' : req.body.organizationName});
+        var empRes = await Employee.findOne({ 'employeeID' : req.body.employeeID});
         if(empRes){
             res.send(userAlreadyExsistForEmployeeId);
             return;
